@@ -1,21 +1,17 @@
 <script async setup lang="ts">
-import { reactive } from 'vue';
+import { ref } from 'vue';
 import fetchAPI from './api/newsApi'
 import type {articles} from './interfaces/NewsAPIInterface'
 import { onMounted } from 'vue'
 import { initFlowbite } from 'flowbite'
-import BigNewsCard from "./components/BigNewsCard.vue"
-const tist = reactive([]) as articles[];
+import NewsGrid from './components/NewsGrid.vue'
+import BigNewsSkeleton from './components/BigNewsSkeleton.vue';
+const tist = ref<articles[]>([]);
 
 // Fetch data when the component is mounted
 onMounted(async () => {
   initFlowbite();
-  try {
-    const response = await fetchNewsData();
-    tist.push(...response);
-  } catch (error) {
-    console.error('Error fetching news data:', error);
-  }
+  fetchNewsData()
 });
 
 // Fetch news data from the API
@@ -30,8 +26,8 @@ async function fetchNewsData() {
       query: { apiKey, q: query, sortBy },
       wrappedByKey: 'articles',
     });
-
-    return response;
+      tist.value = response
+    
   } catch (error) {
     throw new Error('Failed to fetch news data');
   }
@@ -41,10 +37,27 @@ async function fetchNewsData() {
 
 <template>
   <div class="m-6">
-    <h1 class="mb-4 text-4xl text-center font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">NewsPortal.com</h1>
+    <h1 class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-center text-gray-900 md:text-5xl lg:text-6xl dark:text-white">NewsPortal.com</h1>
   </div>
-<div class="grid grid-cols-2 m-4 h-[95vh]">
-  <BigNewsCard v-for="article in tist" :key="article.title" :article="article" />
+ 
+  <Suspense  >
+    <NewsGrid />
+    
+    <template #fallback>
+<div>
+  <div class="max-w-md p-4 mx-auto">
+
+    <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[360px] mb-2.5"></div>
+  </div>
+  <div class="grid grid-cols-2 m-4 h-[95vh]">
+        <BigNewsSkeleton />
+        <BigNewsSkeleton />
+        <BigNewsSkeleton />
+        <BigNewsSkeleton />
+      </div>
 </div>
+
+    </template>
+  </Suspense>
 
 </template>
